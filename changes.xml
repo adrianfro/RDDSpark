@@ -4,7 +4,7 @@
 		<author email="adrian.ferreiro.rodriguez@rai.usc.es" />
 	</properties>
 	<body>
-		<release version="0.01" date="2018-??-??" description="" >
+		<release version="0.0.1" date="2018-??-??" description="" >
 			<action dev="adrianfro" type="add" >
 				Initial import.
 			</action>
