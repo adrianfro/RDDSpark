@@ -5,7 +5,7 @@
 	</properties>
 	<body>
 		<release version="0.0.1" date="2018-??-??" description="" >
-			<action dev="adrianfro" type="add" >
+			<action dev="aferreiro" type="add" >
 				Initial import.
 			</action>
 		</release>
