@@ -1,24 +1,21 @@
 package com.github.adrianfro.RDDSpark;
 
-import org.apache.spark.mllib.linalg.DenseVector;
-
-import com.github.adrianfro.RDDSpark.operations.Level1;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 
 public class App {
     
 	public static void main( String[] args ) {
 		
-		double[] values1 = new double[] {1.2, 2.2};
-		double[] values2 = new double[] {3.2, 2.4, 3.7};
+		final SparkConf sparkConf = new SparkConf();
+		sparkConf.set("spark.shuffle.reduceLocality.enabled","false");
+		sparkConf.setMaster("local[4]");
+		sparkConf.setAppName("BLASSpark");
+		//sparkConf.set("spark.memory.useLegacyMode","true");
 		
-		final DenseVector vector1 = new DenseVector(values1);
-		final DenseVector vector2 = new DenseVector(values2);
-		
-		final double sumElements = Level1.sumElements(vector1);
-		final double multiplication = Level1.multiply(vector1, vector2);
-		
-		System.out.println("sumElements = " + sumElements);
-		System.out.println("multiplication = " + multiplication);
+		//The ctx is created from the previous config
+        final JavaSparkContext context = new JavaSparkContext(sparkConf);
+        //ctx.hadoopConfiguration().set("parquet.enable.summary-metadata", "false");
 		
     }
 }
