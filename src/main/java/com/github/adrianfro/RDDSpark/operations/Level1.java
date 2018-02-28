@@ -4,9 +4,11 @@ import org.apache.spark.mllib.linalg.DenseVector;
 
 public class Level1 implements Operation {
 	
+	private static final double ZERO = 0.0;
+	
 	public static double multiply(DenseVector vector1, DenseVector vector2) {
 		
-		double result = 0.0;
+		double result = ZERO;
 		
 		for (int i = 0; i < vector1.size(); i++) {
 			
@@ -18,7 +20,7 @@ public class Level1 implements Operation {
 	
 	public static double sumElements(DenseVector vector) {
 		
-		double result = 0.0;
+		double result = ZERO;
 		
 		for (int i = 0; i < vector.size(); i++) {
 			
