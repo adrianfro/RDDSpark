@@ -2,7 +2,7 @@ package com.github.adrianfro.RDDSpark;
 
 import org.apache.spark.mllib.linalg.DenseVector;
 
-import com.github.adrianfro.RDDSpark.operations.LevelOne;
+import com.github.adrianfro.RDDSpark.operations.Level1;
 
 public class App {
     
@@ -14,8 +14,8 @@ public class App {
 		final DenseVector vector1 = new DenseVector(values1);
 		final DenseVector vector2 = new DenseVector(values2);
 		
-		final double sumElements = LevelOne.sumElements(vector1);
-		final double multiplication = LevelOne.multiply(vector1, vector2);
+		final double sumElements = Level1.sumElements(vector1);
+		final double multiplication = Level1.multiply(vector1, vector2);
 		
 		System.out.println("sumElements = " + sumElements);
 		System.out.println("multiplication = " + multiplication);

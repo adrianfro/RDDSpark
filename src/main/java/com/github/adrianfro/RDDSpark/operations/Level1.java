@@ -2,7 +2,7 @@ package com.github.adrianfro.RDDSpark.operations;
 
 import org.apache.spark.mllib.linalg.DenseVector;
 
-public class LevelOne implements Operation {
+public class Level1 implements Operation {
 	
 	public static double multiply(DenseVector vector1, DenseVector vector2) {
 		

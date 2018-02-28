@@ -30,9 +30,9 @@ import com.github.adrianfro.RDDSpark.spark.MatrixEntriesMultiplicationReductor;
 
 import scala.Tuple2;
 
-public class LevelTwo implements Operation {
+public class Level2 implements Operation {
 	
-	private static final Log LOG = LogFactory.getLog(LevelTwo.class);
+	private static final Log LOG = LogFactory.getLog(Level2.class);
 	
 	/**
 	 * generalized matrix-vector multiplication 
