@@ -1,12 +1,15 @@
 package com.github.adrianfro.RDDSpark.operations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -20,6 +23,7 @@ import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix;
 import org.apache.spark.mllib.linalg.distributed.DistributedMatrix;
 import org.apache.spark.mllib.linalg.distributed.IndexedRow;
 import org.apache.spark.mllib.linalg.distributed.IndexedRowMatrix;
+import org.apache.spark.mllib.linalg.distributed.MatrixEntry;
 
 import com.github.adrianfro.RDDSpark.spark.MatrixEntriesMultiplication;
 import com.github.adrianfro.RDDSpark.spark.MatrixEntriesMultiplicationReductor;
@@ -177,5 +181,97 @@ public class LevelTwo implements Operation {
         
 		return returnValues;
 	}
+	
+	/* ****************************************** DGER ****************************************** */
+    // A := alpha*x*y**T + A
+    public static DistributedMatrix dger(double alpha, DenseVector x, DenseVector y, DistributedMatrix A, JavaSparkContext context) {
+
+        // Case of IndexedRowMatrix
+        if( A instanceof IndexedRowMatrix) {
+            return dgerIRW((IndexedRowMatrix) A, alpha, x, y, context);
+        } else if (A instanceof CoordinateMatrix) {
+            return dgerCOORD((CoordinateMatrix) A, alpha, x, y, context);
+        } else if (A instanceof BlockMatrix){
+            //return L2.DGER_BCK((BlockMatrix) A, alpha, x, y, jsc);
+            return null;
+        } else {
+            return null;
+        }
+
+    }
+
+    @SuppressWarnings("serial")
+	private static IndexedRowMatrix dgerIRW(IndexedRowMatrix A, double alpha, DenseVector x, DenseVector y, JavaSparkContext context) {
+
+        final Broadcast<Double> AlphaBC = context.broadcast(alpha);
+        final Broadcast<DenseVector> BCVector_X = context.broadcast(x);
+        final Broadcast<DenseVector> BCVector_Y = context.broadcast(y);
+
+        final JavaRDD<IndexedRow> rows = A.rows().toJavaRDD();
+
+        final JavaRDD<IndexedRow> resultRows = rows.map(new Function<IndexedRow, IndexedRow>() {
+            public IndexedRow call(IndexedRow indexedRow) throws Exception {
+
+                final DenseVector Vector_X = BCVector_X.getValue();
+                final DenseVector Vector_Y = BCVector_Y.getValue();
+                final double alphaBCRec = AlphaBC.getValue().doubleValue();
+
+                final DenseVector row = indexedRow.vector().toDense();
+
+                final double[] resultArray = new double[row.size()];
+
+                final long i = indexedRow.index();
+
+                for( int j = 0; j< Vector_Y.size(); j++) {
+                    resultArray[j] = alphaBCRec * Vector_X.apply((int)i) * Vector_Y.apply(j) + row.apply(j);
+                }
+
+                return new IndexedRow(indexedRow.index(), new DenseVector(resultArray));
+
+            }
+        });
+
+        return new IndexedRowMatrix(resultRows.rdd(), x.size(), y.size());
+    }
+
+
+    @SuppressWarnings("serial")
+	private static CoordinateMatrix dgerCOORD(CoordinateMatrix A, double alpha, DenseVector x, DenseVector y, JavaSparkContext context) {
+
+        final Broadcast<Double> alphaBroadcast = context.broadcast(alpha);
+        final Broadcast<DenseVector> vectorBroadcast_X = context.broadcast(x);
+        final Broadcast<DenseVector> vectorBroadcast_Y = context.broadcast(y);
+
+        final JavaRDD<MatrixEntry> entries = A.entries().toJavaRDD();
+
+        final JavaRDD<MatrixEntry> resultEntries = entries.mapPartitions(new FlatMapFunction<Iterator<MatrixEntry>, MatrixEntry>() {
+        	
+            public Iterator<MatrixEntry> call(Iterator<MatrixEntry> matrixEntryIterator) throws Exception {
+
+                final DenseVector vector_X = vectorBroadcast_X.getValue();
+                final DenseVector vector_Y = vectorBroadcast_Y.getValue();
+                final double alphaBroadcastRec = alphaBroadcast.getValue().doubleValue();
+
+                final List<MatrixEntry> resultEntries = new ArrayList<MatrixEntry>();
+
+                double result = 0.0;
+                
+                while(matrixEntryIterator.hasNext()) {
+                	
+                	final MatrixEntry entry = matrixEntryIterator.next();
+                    
+                    result = alphaBroadcastRec * vector_X.apply((int)entry.i()) * vector_Y.apply((int) entry.j()) + entry.value();
+
+                    resultEntries.add(new MatrixEntry((int)entry.i(), (int)entry.j(), result));
+
+                }
+
+                return resultEntries.iterator();
+
+            }
+        });
+
+        return new CoordinateMatrix(resultEntries.rdd(), A.numRows(), A.numCols());
+    }
 
 }
