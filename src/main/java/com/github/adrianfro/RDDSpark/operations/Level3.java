@@ -3,7 +3,6 @@ package com.github.adrianfro.RDDSpark.operations;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -21,10 +20,7 @@ import org.apache.spark.mllib.linalg.distributed.DistributedMatrix;
 import org.apache.spark.mllib.linalg.distributed.IndexedRow;
 import org.apache.spark.mllib.linalg.distributed.IndexedRowMatrix;
 import org.apache.spark.mllib.linalg.distributed.MatrixEntry;
-
 import scala.Tuple2;
-
-
 
 public class Level3 implements Operation {
 	
@@ -32,16 +28,8 @@ public class Level3 implements Operation {
 	private static final double ZERO = 0.0;
 	
 	/**
-	 * 
 	 * C := alpha * op(A) * op ( B ) + beta * C
 	 * 
-	 * @param alpha
-	 * @param A
-	 * @param B
-	 * @param beta
-	 * @param C
-	 * @param context
-	 * @return
 	 */
 	
 	public static DistributedMatrix dgemm(double alpha, DistributedMatrix A, DistributedMatrix B, double beta, DistributedMatrix C, JavaSparkContext context) {
